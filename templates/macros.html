@@ -1,0 +1,220 @@
+
+{%macro render_css_include(additional_css = [])%}
+    <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/clean-blog.min.css">
+    <link rel="stylesheet" href="/static/vendor/font-awesome/css/font-awesome.css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+    {%for css_uri in additional_css%}
+    <link rel="stylesheet" href="{{css_uri}}" type="text/css">
+    {%endfor%}
+{%endmacro%}
+
+{%macro render_script_include(additional_script = [])%}
+    <!-- Bootstrap -->
+    <!-- <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script> -->
+    <script src="/static/vendor/jquery/jquery.min.js"></script>
+    <script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/js/jqBootstrapValidation.js"></script>
+    <script src="/static/js/contact_me.js"></script>
+    <script src="/static/js/clean-blog.min.js"></script>
+    {%for js_uri in additional_script%}
+    <script src="{{js_uri}}"></script>
+    {%endfor%}
+
+{%endmacro%}
+
+
+{%macro top_nav(keyword=None)%}
+<header class="hidden-xs">
+    <div class="logo">
+        <a href="/">KhoiNguyen</a>
+    </div>
+    <div class="search-form col-md-8 col-md-offset-2">
+        <div class="col-md-6 col-xs-12" style="display: inline-block; float:none;">
+            <form method="get" action="{{url_for('search')}}">
+                <div class="form-search search-only">
+                    <i class="search-icon glyphicon glyphicon-search"></i>
+                    <input type="text" name="keyword" class="form-control search-query" {%- if keyword -%}value="{{keyword}}"{%- endif -%}>
+                </div>
+            </form>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <nav>
+        {%if not current_user or not current_user.is_authenticated() %}
+        <a href="{{url_for('login', next=request.url)}}">
+            <button class="btn-simple btn-active">Sign in</button>
+        </a>
+        <a href="{{url_for('register', next=request.url)}}">
+            <button class="btn-simple">Register</button>
+        </a>
+        {%else%}
+        <a href="{{url_for('add_post')}}"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New Post</a>
+
+        <div class="dropdown">
+            <button class="btn btn-link" type="button" id="application-menu" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="true">
+                {{current_user.first_name}}
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="application-menu">
+                <li ><a href="{{url_for('profile_handler', action='edit')}}">Edit profile</a></li>
+                <li ><a href="{{url_for('change_password')}}">Change password</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="/logout">Sign out</a></li>
+
+            </ul>
+        </div>
+        {%endif%}
+    </nav>
+    <div style="clear:both;"></div>
+</header>
+{%endmacro%}
+
+<!--Render main menu-->
+{%macro main_menu(menu_items)%}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1 col-sm-12">
+                <nav class="navbar navbar-simple">
+                    <div class="container-fluid">
+                        <!-- Brand and toggle get grouped for better mobile display -->
+                        <div class="navbar-header">
+                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                                <span class="sr-only">Toggle navigation</span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                            </button>
+                            <a class="brand visible-xs-block" href="#">KhoiNguyen</a>
+                        </div>
+
+                        <!-- Collect the nav links, forms, and other content for toggling -->
+                        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                            <ul class="nav navbar-nav">
+                                <li class="active"><a href="/">Home <span class="sr-only">(current)</span></a></li>
+                                {%for item in menu_items%}
+                                <li><a href="{{url_for('category', category=item.slug)}}">{{item.name}}</a></li>
+                                {%endfor%}
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+{%endmacro%}
+
+<!-- Render a introduction of a post on home page-->
+{%macro render_short_post(post, post_endpoint)%}
+    <div class="post-preview">
+        <a href={{ url_for('post',post_id=post.id) }}>
+            <h2 class="post-title">{{ post.title }}</h2>
+        </a>
+        <p class="post-meta">Posted by <a href="#">{{ post.author.ful_name }}</a> on {{ post.time.strftime("%B %e, %Y") }}</p>
+        <p class="post-shortcontent">  {{get_short_content(post.content)|safe}} </p>
+    </div>
+    </hr>
+{%endmacro%}
+
+{%macro render_pagination(pagination, endpoint)%}
+{%if pagination.pages > 1%}
+<ul class="pagination">
+    {%for page in pagination.iter_pages()%}
+    {%if page == pagination.page%}
+    <li class="active"><a href="{{url_for(endpoint,page=page, **kwargs)}}">{{page}}</a></li>
+    {%else%}
+    <li><a href="{{url_for(endpoint,page=page, **kwargs)}}">{{page}}</a></li>
+    {%endif%}
+    {%endfor%}
+</ul>
+{%endif%}
+{%endmacro%}
+
+{% macro render_footer() %}
+      <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="#">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted">Copyright &copy; MrFabulousBlog</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+{% endmacro %}
+
+{% macro render_navbar() %}
+     <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    Menu <i class="fa fa-bars"></i>
+                </button>
+                <a class="navbar-brand" href="/">Start Bootstrap</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="index">Home</a>
+                    </li>
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+                    <li>
+                        <a href="{{url_for('add_post')}}">NewPost</a>
+                    </li>
+                    <li>
+                        <a href="contact.html">Contact</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+{% endmacro %}
+
+{% macro render_single_post(post , post_endpoinr) %}
+      <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                     <p class="post-shortcontent" >
+                     {{ post.content |markdown}}
+                    </p>
+                </div>
+            </div>
+        </div>
+{% endmacro %}
+
